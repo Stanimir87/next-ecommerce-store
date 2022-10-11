@@ -34,7 +34,7 @@ const data = {
             image: '/images/apple.png',
             price: 20,
             countInStock: 5000,
-            description: 'An apple is an edible fruit produced by an apple tree. Also keeps doctors away, apparantly.'
+            description: 'An apple is an edible fruit produced by an apple tree. Also keeps doctors away, apparently.'
         },
         {
             name: 'Peaches',
