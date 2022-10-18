@@ -9,20 +9,32 @@ import {
 } from "@material-ui/core";
 import { useRouter } from "next/router";
 import NextLink from "next/link";
-import React from "react";
+import React, { useContext } from "react";
 import Layout from "../../components/Layout";
 import data from "../../utils/data";
 import useStyles from "../../utils/styles";
 import Image from "next/image";
 import Product from "../../models/Product";
 import db from "../../utils/db";
+import axios from "axios";
+import { Store } from "../../utils/store";
 
 export default function ProductScreen(props) {
-  const {product} = props;
+  const {dispatch } = useContext(Store);
+  const { product } = props;
   const classes = useStyles();
   if (!product) {
     return <div>Product not found.</div>;
   }
+
+  const addToCartHandler = async () => {
+    const { data } = await axios.get(`/api/products/${product._id}`);
+    if(data.countInStock <= 0){
+      window.alert('Product out of stock');
+      return;
+    }
+    dispatch({ type: "CART_ADD_ITEM", payload: { ...product, quantity: 1 } });
+  };
 
   return (
     <Layout title={product.name} description={product.description}>
@@ -46,7 +58,9 @@ export default function ProductScreen(props) {
         <Grid item md={6} xs={12}>
           <List>
             <ListItem>
-              <Typography component="h1" variant="h1">Name: {product.name}</Typography>
+              <Typography component="h1" variant="h1">
+                Name: {product.name}
+              </Typography>
             </ListItem>
             <ListItem>
               <Typography>Category: {product.category}</Typography>
@@ -56,7 +70,9 @@ export default function ProductScreen(props) {
               <Typography>Description: {product.description}</Typography>
             </ListItem>
             <ListItem>
-              <Typography>Stock: {product.countInStock > 0 ?'In stock' : 'Out of stock'}</Typography>
+              <Typography>
+                Stock: {product.countInStock > 0 ? "In stock" : "Out of stock"}
+              </Typography>
             </ListItem>
           </List>
         </Grid>
@@ -79,6 +95,7 @@ export default function ProductScreen(props) {
                   fullWidth
                   variant="contained"
                   color="primary"
+                  onClick={addToCartHandler}
                 >
                   Add to cart
                 </Button>
@@ -92,11 +109,11 @@ export default function ProductScreen(props) {
 }
 
 export async function getServerSideProps(context) {
-  const {params} = context;
-  const {slug} = params;
+  const { params } = context;
+  const { slug } = params;
 
   await db.connect();
-  const product = await Product.findOne({slug}).lean();
+  const product = await Product.findOne({ slug }).lean();
   await db.disconnect();
   console.log(product);
   return {
