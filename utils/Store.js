@@ -6,7 +6,9 @@ export const Store = createContext();
 const initialState = {
   darkMode: Cookies.get("darkMode") === "ON" ? true : false,
   cart: {
-    cartItems: [],
+    cartItems: Cookies.get("cartItems")
+      ? JSON.parse(Cookies.get("cartItems"))
+      : [],
   },
 };
 
@@ -26,7 +28,14 @@ function reducer(state, action) {
             item.name === existItem.name ? newItem : item
           )
         : [...state.cart.cartItems, newItem];
-      // Cookies.set("cartItems", JSON.stringify(cartItems));
+      Cookies.set("cartItems", JSON.stringify(cartItems));
+      return { ...state, cart: { ...state.cart, cartItems } };
+    }
+    case "CART_REMOVE_ITEM": {
+      const cartItems = state.cart.cartItems.filter(
+        (item) => item._id !== action.payload._id
+      );
+      Cookies.set("cartItems", JSON.stringify(cartItems));
       return { ...state, cart: { ...state.cart, cartItems } };
     }
 
@@ -40,7 +49,6 @@ export function StoreProvider(props) {
   const value = { state, dispatch };
   return <Store.Provider value={value}>{props.children}</Store.Provider>;
 }
-
 
 // cartItems: Cookies.get("cartItems")
 // ? JSON.parse(Cookies.get("cartItems"))
